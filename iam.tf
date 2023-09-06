@@ -1,4 +1,3 @@
-
 # Define the Lambda function
 resource "aws_iam_role" "lambda_execution_role" {
   name = var.lambda_execution_role_name
@@ -48,11 +47,13 @@ resource "aws_iam_role" "codebuild_role" {
 }
 
 resource "aws_iam_policy_attachment" "codepipeline_attachment" {
+  name       = aws_iam_role.codepipeline_role.name  # Replace with the correct IAM role name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
   roles      = [aws_iam_role.codepipeline_role.name]
 }
 
 resource "aws_iam_policy_attachment" "codebuild_attachment" {
+  name       = aws_iam_role.codebuild_role.name  # Replace with the correct IAM role name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess"
   roles      = [aws_iam_role.codebuild_role.name]
 }
