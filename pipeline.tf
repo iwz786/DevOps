@@ -8,52 +8,58 @@ resource "aws_codedeploy_app" "lambda_app" {
 resource "aws_codedeploy_deployment_group" "lambda_deployment_group" {
   app_name = aws_codedeploy_app.lambda_app.name
   deployment_group_name = "my-lambda-deployment-group"  # Change to your desired deployment group name
-  service_role_arn      = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+  service_role_arn      = aws_iam_role.codedeploy_role.arn
+  deployment_config_name = "CodeDeployDefault.LambdaAllAtOnce" # You can specify a different deployment configuration if needed
 
   auto_rollback_configuration {
     enabled = false
   }
 
-  deployment_style {
-    deployment_option = "WITH_TRAFFIC_CONTROL"
-    deployment_type   = "BLUE_GREEN"
-  }
+  # deployment_style {
+  #   deployment_option = "WITH_TRAFFIC_CONTROL"
+  #   deployment_type   = "BLUE_GREEN"
+  # }
 
-  blue_green_deployment_config {
-    terminate_blue_instances_on_deployment_success {
-      action = "TERMINATE"
-      termination_wait_time_in_minutes = 5
-    }
+  # blue_green_deployment_config {
+  #   terminate_blue_instances_on_deployment_success {
+  #     action = "TERMINATE"
+  #     termination_wait_time_in_minutes = 5
+  #   }
 
-    deployment_ready_option {
-      action_on_timeout = "CONTINUE_DEPLOYMENT"
-    }
+  #   deployment_ready_option {
+  #     action_on_timeout = "CONTINUE_DEPLOYMENT"
+  #   }
 
-    green_fleet_provisioning_option {
-      action = "DISCOVER_EXISTING"
-    }
-  }
+    # green_fleet_provisioning_option {
+    #   action = "DISCOVER_EXISTING"
+    # }
+  # }
 
-  load_balancer_info {
-    elb_info {
-      name = "my-load-balancer-name"  # Change to your load balancer name if needed
-    }
-  }
+  # load_balancer_info {
+  #   elb_info {
+  #     name = "my-load-balancer-name"  # Change to your load balancer name if needed
+  #   }
+  # }
 
-  trigger_configuration {
-    trigger_events = ["DeploymentStart", "DeploymentSuccess"]
-    trigger_name   = "my-trigger-name"  # Change to your desired trigger name
-    trigger_target_arn = "arn:aws:sns:us-east-1:123456789012:my-sns-topic"  # Change to your SNS topic ARN
-  }
+  # trigger_configuration {
+  #   trigger_events = ["DeploymentStart", "DeploymentSuccess"]
+  #   trigger_name   = "my-trigger-name"  # Change to your desired trigger name
+  #   trigger_target_arn = "arn:aws:sns:us-east-1:123456789012:my-sns-topic"  # Change to your SNS topic ARN
+  # }
 }
 
 resource "aws_codebuild_project" "lambda_build" {
   name       = "my-lambda-build-project"
   description = "Build project for Lambda function"
+  
   source {
-    type            = "NO_SOURCE"
-    buildspec       = "buildspec.yml"
-  }
+  # type            = "GITHUB"
+  type            = "CODEPIPELINE"
+  # location        = var.github_repository
+  buildspec       = "buildspec.yml"  # Path to your buildspec file
+  git_clone_depth = 1
+}
+
   
   artifacts {
     type = "CODEPIPELINE"  # Use "CODEPIPELINE" for CodePipeline-based deployments
